@@ -56,7 +56,7 @@ Resources:
     DependsOn: Database
     Properties:
       KeyName: !Ref KeyName
-      ImageId: ami-06cd7f9c4486344a5
+      ImageId: ami-036559f6f83de21be
       InstanceType: t2.micro
       SubnetId: !Ref AppSubnetId
       SecurityGroupIds:
