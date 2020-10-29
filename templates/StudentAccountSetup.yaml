@@ -101,6 +101,7 @@ Resources:
         - arn:aws:iam::aws:policy/ReadOnlyAccess
         - arn:aws:iam::aws:policy/IAMUserChangePassword
         - arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
+        - arn:aws:iam::aws:policy/CloudFrontFullAccess
 
   StudentUser:
     Type: AWS::IAM::User
