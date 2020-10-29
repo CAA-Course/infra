@@ -91,7 +91,7 @@ export class CdkStack extends cdk.Stack {
         `sudo yum install -y java-1.8.0-amazon-corretto-devel`,
         `sudo yum remove -y java-1.7.0-openjdk`,
         `cd /home/ec2-user`,
-        `curl -L -O https://github.com/CAA-Course/app/releases/download/1.0/shop-1.0.jar`,
+        `curl -L -O https://github.com/CAA-Course/app/releases/download/3.0/shop-1.0.jar`,
         `java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${dbInstance.instancePrivateIp} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=postgres -jar shop-1.0.jar`,
       ]
     );
