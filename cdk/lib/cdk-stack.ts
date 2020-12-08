@@ -7,78 +7,23 @@ export class CdkStack extends cdk.Stack {
   constructor(
     scope: cdk.Construct,
     id: string,
-    props: cdk.StackProps = { env: { region: 'eu-west-1' } }
+    props: cdk.StackProps = {
+      env: { region: 'eu-west-1', account: process.env.CDK_DEFAULT_ACCOUNT },
+    }
   ) {
     super(scope, id, props);
 
+    const albSGId = cdk.Fn.importValue('CF-ALBSG');
+    const appSGId = cdk.Fn.importValue('CF-AppSG');
+
+    const rdsEndpoint = new cdk.CfnParameter(this, 'rdsEndpoint', {
+      type: 'string',
+      description: 'The endpoint of the RDS instance',
+    });
+
     cdk.Tags.of(this).add('project', 'caacourse');
 
-    const vpc = new ec2.Vpc(this, 'VPC');
-
-    // Configure security groups
-    const albSG = new ec2.SecurityGroup(this, 'ALB-SG', {
-      vpc,
-      description: 'Application Load Balancer security group',
-      allowAllOutbound: false,
-    });
-    albSG.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(80),
-      'allow http access from the world'
-    );
-    albSG.addEgressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(80),
-      'allow http access to the world'
-    );
-
-    const apSG = new ec2.SecurityGroup(this, 'App-SG', {
-      vpc,
-      description: 'Application security group',
-      allowAllOutbound: true,
-    });
-    apSG.addIngressRule(
-      albSG,
-      ec2.Port.tcp(8080),
-      'allow http traffic from ALB'
-    );
-
-    const dbSG = new ec2.SecurityGroup(this, 'DB-SG', {
-      vpc,
-      description: 'Database security group',
-      allowAllOutbound: true,
-    });
-    dbSG.addIngressRule(
-      apSG,
-      ec2.Port.tcp(5432),
-      'allow postgress traffic from the app'
-    );
-
-    // Create the database EC2 instance
-    const dbUserData = ec2.UserData.forLinux({
-      shebang: '#!/bin/bash -ex',
-    });
-    dbUserData.addCommands(
-      ...[
-        `sudo yum -y update`,
-        `sudo -i -u postgres psql -c "ALTER USER postgres WITH PASSWORD postgres;"`,
-      ]
-    );
-    const dbInstance = new ec2.Instance(this, 'db-instance', {
-      instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T2,
-        ec2.InstanceSize.MICRO
-      ),
-      machineImage: ec2.MachineImage.genericLinux({
-        'eu-west-1': 'ami-0f312703e35557754',
-      }),
-      vpc,
-      securityGroup: dbSG,
-      vpcSubnets: {
-        subnets: vpc.privateSubnets,
-      },
-      userData: dbUserData,
-    });
+    const vpc = ec2.Vpc.fromLookup(this, 'VPC', { isDefault: true });
 
     // Create user data for the app instance
     const appUserData = ec2.UserData.forLinux({
@@ -92,7 +37,7 @@ export class CdkStack extends cdk.Stack {
         `sudo yum remove -y java-1.7.0-openjdk`,
         `cd /home/ec2-user`,
         `curl -L -O https://github.com/CAA-Course/app/releases/download/3.0/shop-1.0.jar`,
-        `java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${dbInstance.instancePrivateIp} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=postgres -jar shop-1.0.jar`,
+        `java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${rdsEndpoint.valueAsString} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=postgres -jar shop-1.0.jar`,
       ]
     );
 
@@ -109,13 +54,21 @@ export class CdkStack extends cdk.Stack {
       vpcSubnets: {
         subnetType: ec2.SubnetType.PUBLIC,
       },
-      securityGroup: apSG,
+      securityGroup: ec2.SecurityGroup.fromSecurityGroupId(
+        this,
+        'App-SG',
+        appSGId
+      ),
     });
 
     const lb = new elbv2.ApplicationLoadBalancer(this, 'LB', {
       vpc,
       internetFacing: true,
-      securityGroup: albSG,
+      securityGroup: ec2.SecurityGroup.fromSecurityGroupId(
+        this,
+        'ALB-SG',
+        albSGId
+      ),
     });
 
     const listener = lb.addListener('Listener', {
