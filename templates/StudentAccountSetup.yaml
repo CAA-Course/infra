@@ -4,54 +4,54 @@ Description: Setup the student account with the required IAM entities (group, us
 
 Parameters:
   MaxPasswordAge:
-    Type: "Number"
-    Description: "Maximum age for passwords"
+    Type: 'Number'
+    Description: 'Maximum age for passwords'
     Default: 180
-    ConstraintDescription: "(90-365 days)"
+    ConstraintDescription: '(90-365 days)'
     MinValue: 90
     MaxValue: 365
   MinPasswordLength:
-    Type: "Number"
-    Description: "Minimum password length"
+    Type: 'Number'
+    Description: 'Minimum password length'
     Default: 8
-    ConstraintDescription: "(8-128 characters)"
+    ConstraintDescription: '(8-128 characters)'
     MinValue: 8
     MaxValue: 128
   PasswordHistory:
-    Type: "Number"
-    Description: "Number of previous passwords to remember"
+    Type: 'Number'
+    Description: 'Number of previous passwords to remember'
     Default: 3
-    ConstraintDescription: "(1-24 passwords)"
+    ConstraintDescription: '(1-24 passwords)'
     MinValue: 1
     MaxValue: 24
   RequireLowercaseChars:
-    Type: "String"
-    Description: "Require at least one lowercase character"
-    Default: "True"
+    Type: 'String'
+    Description: 'Require at least one lowercase character'
+    Default: 'True'
     AllowedValues:
-      - "True"
-      - "False"
+      - 'True'
+      - 'False'
   RequireNumbers:
-    Type: "String"
-    Description: "Require at least one number"
-    Default: "True"
+    Type: 'String'
+    Description: 'Require at least one number'
+    Default: 'True'
     AllowedValues:
-      - "True"
-      - "False"
+      - 'True'
+      - 'False'
   RequireSymbols:
-    Type: "String"
-    Description: "Require at least one symbol"
-    Default: "False"
+    Type: 'String'
+    Description: 'Require at least one symbol'
+    Default: 'False'
     AllowedValues:
-      - "True"
-      - "False"
+      - 'True'
+      - 'False'
   RequireUppercaseChars:
-    Type: "String"
-    Description: "Require at least one uppercase character"
-    Default: "True"
+    Type: 'String'
+    Description: 'Require at least one uppercase character'
+    Default: 'True'
     AllowedValues:
-      - "True"
-      - "False"
+      - 'True'
+      - 'False'
 
 Resources:
   StudentsGroup:
@@ -71,14 +71,14 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator
       Policies:
         - PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               Effect: Allow
               Action: sts:AssumeRole
               Resource: arn:aws:iam::026709880083:role/CAACourseDNSUpdateRole
           PolicyName: AssumeRoleForDNSRecords
         - PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               Effect: Allow
               Action:
@@ -91,7 +91,11 @@ Resources:
                 - iam:RemoveRoleFromInstanceProfile
                 - iam:DeleteInstanceProfile
                 - iam:AddRoleToInstanceProfile
-              Resource: "*"
+                - iam:DetachRolePolicy
+                - iam:DeleteRole
+                - iam:DeleteRolePolicy
+                - iam:CreatePolicy
+              Resource: '*'
           PolicyName: AllowRoleCreation
   GeneralGroup:
     Type: AWS::IAM::Group
@@ -104,6 +108,9 @@ Resources:
         - arn:aws:iam::aws:policy/CloudFrontFullAccess
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
         - arn:aws:iam::aws:policy/AmazonEC2ContainerServiceFullAccess
+        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
+        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
 
   StudentUser:
     Type: AWS::IAM::User
@@ -124,26 +131,26 @@ Resources:
     Properties:
       RoleName: CloudWatch-CrossAccountSharingRole
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               AWS: arn:aws:iam::026709880083:root
             Action:
               - sts:AssumeRole
-      Path: "/"
+      Path: '/'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
         - arn:aws:iam::aws:policy/CloudWatchAutomaticDashboardsAccess
 
   IAMPasswordPolicy:
-    Type: "Custom::IAMPolicyResource"
+    Type: 'Custom::IAMPolicyResource'
     Properties:
       ServiceToken: !GetAtt IAMPasswordPolicyResource.Arn
-      Region: !Ref "AWS::Region"
+      Region: !Ref 'AWS::Region'
 
   IAMPasswordPolicyResource:
-    Type: "AWS::Lambda::Function"
+    Type: 'AWS::Lambda::Function'
     DependsOn:
       - IAMPasswordPolicyResourceExecutionRole
     Properties:
@@ -200,7 +207,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
@@ -208,21 +215,37 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      Path: "/"
+      Path: '/'
       Policies:
         - PolicyName: IAMPasswordCreatorPolicy
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
+              - Effect: 'Allow'
                 Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource: "*"
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
               - Effect: Allow
                 Action:
                   - iam:GetAccountPasswordPolicy
                   - iam:UpdateAccountPasswordPolicy
                   - iam:DeleteAccountPasswordPolicy
-                Resource: "*"
+                Resource: '*'
+
+  StudentIAMAdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: IAM-Admin-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt StudentUser.Arn
+            Action:
+              - sts:AssumeRole
+      Path: '/'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/IAMFullAccess

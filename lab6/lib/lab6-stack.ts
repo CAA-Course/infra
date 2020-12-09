@@ -50,6 +50,7 @@ export class Lab6Stack extends cdk.Stack {
         version: rds.PostgresEngineVersion.VER_12_4,
       }),
       vpc,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
       allocatedStorage: 30,
       backupRetention: cdk.Duration.days(0),
       databaseName: 'postgres',
@@ -99,6 +100,11 @@ export class Lab6Stack extends cdk.Stack {
       }
     );
     service.loadBalancer.addSecurityGroup(albSg);
-    service.cluster.connections.addSecurityGroup(appSg);
+    service.cluster.connections.addSecurityGroup(...[appSg]);
+
+    db.connections.securityGroups[0].addIngressRule(
+      service.cluster.connections.securityGroups[0],
+      ec2.Port.tcp(5432)
+    );
   }
 }
