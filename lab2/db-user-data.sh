@@ -19,7 +19,7 @@ sudo yum -y install postgresql13 postgresql13-server
 sudo /usr/pgsql-13/bin/postgresql-13-setup initdb
 
 # Configure postgres to allow remote connections
-sed -i "s/listen_addresses = 'localhost'/listen_addresses = '*'/g" /var/lib/pgsql/13/data/postgresql.conf
+sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /var/lib/pgsql/13/data/postgresql.conf
 
 # Configure postgres to allow client connections from remote
 echo 'host    all             all              0.0.0.0/0                       md5\nhost    all             all              ::/0                            md5' >> /var/lib/pgsql/13/data/pg_hba.conf
