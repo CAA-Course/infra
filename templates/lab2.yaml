@@ -7,20 +7,16 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
 
-  DbSubnetId:
-    Description: The (private) subnet where to deploy the database
-    Type: AWS::EC2::Subnet::Id
-
-  DbSecurityGroup:
-    Description: The security group Id for the database instance
-    Type: AWS::EC2::SecurityGroup::Id
-
-  DbImageId:
-    Description: The image id for the database instance
+  AmiId:
+    Description: The AMI image ID we should use to spin up the EC2 instances. Amazon Linux 2 should do it.
     Type: AWS::EC2::Image::Id
 
+  DbIpAddress:
+    Description: The private IP of the database instance
+    Type: String
+
   DbPassword:
-    Description: The password for postgres user
+    Description: The password for postgres user. You can find it in the database user data
     Type: String
 
   AppSubnetId:
@@ -32,31 +28,11 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id
 
 Resources:
-  Database:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: !Ref DbImageId
-      InstanceType: t2.micro
-      SubnetId: !Ref DbSubnetId
-      SecurityGroupIds:
-        - !Ref DbSecurityGroup
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -ex
-          sudo yum -y update
-
-          # Set the postgres password
-          sudo -i -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${DbPassword}';"
-      Tags:
-        - Key: project
-          Value: caacourse
-
   Application:
     Type: AWS::EC2::Instance
-    DependsOn: Database
     Properties:
       KeyName: !Ref KeyName
-      ImageId: ami-0bb3fad3c0286ebd5
+      ImageId: !Ref AmiId
       InstanceType: t2.micro
       SubnetId: !Ref AppSubnetId
       SecurityGroupIds:
@@ -77,7 +53,7 @@ Resources:
           cd /home/ec2-user
           curl -L -O https://github.com/CAA-Course/app/releases/download/1.0/shop-1.0.jar
 
-          java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${Database.PrivateIp} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=${DbPassword} -jar shop-1.0.jar
+          java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${DbIpAddress} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=${DbPassword} -jar shop-1.0.jar
       Tags:
-        - Key: project
-          Value: caacourse
+        - Key: Name
+          Value: App
