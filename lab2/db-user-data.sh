@@ -22,7 +22,8 @@ sudo /usr/pgsql-13/bin/postgresql-13-setup initdb
 sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /var/lib/pgsql/13/data/postgresql.conf
 
 # Configure postgres to allow client connections from remote
-echo 'host    all             all              0.0.0.0/0                       md5\nhost    all             all              ::/0                            md5' >> /var/lib/pgsql/13/data/pg_hba.conf
+echo 'host    all             all              0.0.0.0/0                       md5' >> /var/lib/pgsql/13/data/pg_hba.conf
+echo 'host    all             all              ::/0                            md5' >> /var/lib/pgsql/13/data/pg_hba.conf
 
 # Enable the postgres service
 sudo systemctl enable --now postgresql-13
