@@ -61,7 +61,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEC2FullAccess
         - arn:aws:iam::aws:policy/AmazonRDSFullAccess
-        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/EC2InstanceConnect
@@ -107,7 +107,7 @@ Resources:
         - arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess
         - arn:aws:iam::aws:policy/CloudFrontFullAccess
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerServiceFullAccess
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
         - arn:aws:iam::aws:policy/AmazonSNSFullAccess
         - arn:aws:iam::aws:policy/AmazonSQSFullAccess
         - arn:aws:iam::aws:policy/SecretsManagerReadWrite
@@ -154,7 +154,7 @@ Resources:
     DependsOn:
       - IAMPasswordPolicyResourceExecutionRole
     Properties:
-      Runtime: python2.7
+      Runtime: python3.9
       Handler: index.lambda_handler
       MemorySize: 128
       Timeout: 30
