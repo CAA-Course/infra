@@ -6,3 +6,10 @@ variable "students" {
     account_id = string
   }))
 }
+
+variable "accounts" {
+  type = map(object({
+    email = string
+    name  = string
+  }))
+}

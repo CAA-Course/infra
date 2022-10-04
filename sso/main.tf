@@ -15,15 +15,17 @@ terraform {
 
 provider "aws" {}
 
-data "aws_organizations_organization" "caa" {}
+# Organization accounts
+module "account" {
+  for_each = var.accounts
 
-data "aws_ssoadmin_instances" "this" {}
-
-locals {
-  instance_id  = tolist(data.aws_ssoadmin_instances.this.identity_store_ids)[0]
-  instance_arn = tolist(data.aws_ssoadmin_instances.this.arns)[0]
+  source = "./modules/account"
+  email  = each.value.email
+  name   = each.value.name
+  ou_id  = "ou-zgnu-4duq6vdo"
 }
 
+# SSO/Identity store setup
 resource "aws_ssoadmin_permission_set" "learn" {
   name             = "LearningAccess"
   instance_arn     = local.instance_arn
@@ -37,6 +39,7 @@ resource "aws_identitystore_group" "students" {
   identity_store_id = local.instance_id
 }
 
+# Students
 module "student" {
   for_each = var.students
 
