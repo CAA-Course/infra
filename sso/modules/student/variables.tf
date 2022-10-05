@@ -22,6 +22,6 @@ variable "permission_set" {
   type = any
 }
 
-variable "account_id" {
-  type = string
+variable "account_ids" {
+  type = list(string)
 }
