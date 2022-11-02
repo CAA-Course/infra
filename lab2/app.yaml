@@ -40,7 +40,7 @@ Resources:
 
           # Download the app release artifact
           cd /home/ec2-user
-          curl -L -O https://github.com/CAA-Course/app/releases/download/2022.11/shop-1.0.jar
+          curl -L -O https://github.com/CAA-Course/app/releases/download/2022.11.2/shop-1.0.jar
 
           java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${DbIpAddress} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=caa_password123 -jar shop-1.0.jar
       Tags:
