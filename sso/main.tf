@@ -19,7 +19,7 @@ module "account" {
   # We are hardcoding the number of accounts rather than dynamically 
   # deducing it based on the number of users because closing an AWS account
   # is a more complex operation that doesn't release the root email address.
-  count = 86
+  count = 91
 
   source = "./modules/account"
   # The student53 account was deleted. We cannot use that email address again.
