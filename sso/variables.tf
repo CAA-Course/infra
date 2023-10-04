@@ -6,3 +6,7 @@ variable "teachers" {
     account_ids = list(string)
   }))
 }
+
+variable "students_path" {
+  type = string
+}

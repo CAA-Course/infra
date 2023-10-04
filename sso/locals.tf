@@ -8,6 +8,6 @@ locals {
 }
 
 locals {
-  students_data = jsondecode(file("./students.json"))
+  students_data = jsondecode(file(var.students_path))
   students      = { for stud in local.students_data : stud.NrCrt => stud }
 }

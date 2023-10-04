@@ -13,7 +13,9 @@ terraform {
   }
 }
 
-provider "aws" {}
+provider "aws" {
+  region = "eu-west-1"
+}
 
 module "account" {
   # We are hardcoding the number of accounts rather than dynamically 

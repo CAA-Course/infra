@@ -2,7 +2,7 @@
 
 This repo contains the Terraform code for deploying the AWS Organizations/SSO infrastructure for the CAA Lab.
 
-You will need the students ([{NrCrt, Nume, Prenume, emailstud}]) stored in `./students.json`. You can find it [here](https://drive.google.com/drive/u/0/folders/1zrNxy1ofNQbo3LCLYA1H1n8vpV_pgPym). You will also need the users with admin rights (teachers) that you can also find on GDrive.
+You will need the students ([{NrCrt, Nume, Prenume, emailstud}]) stored in a json file (the path to it must be specified in `students_path`) (check Google Drive, current year). You will also need the users with admin rights (teachers) that you can also find on GDrive.
 
 Configure the AWS CLI with the root account (026709880083) (you can make sure by running `aws sts get-caller-identity`) and run `terraform apply`.
 
