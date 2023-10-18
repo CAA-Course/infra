@@ -9,11 +9,11 @@ Parameters:
 
   DbSecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
-    Description: The security group Id for the database instance
+    Description: The security group ID for the database instance
 
   DbImageId:
     Type: AWS::EC2::Image::Id
-    Description: The image id for the database instance
+    Description: The image/AMI ID for the database instance
 
 Resources:
   Database:

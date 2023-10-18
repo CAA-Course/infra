@@ -21,7 +21,7 @@ Resources:
   Application:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0ea0f26a6d50850c5
+      ImageId: ami-0dab0800aa38826f2
       InstanceType: t2.micro
       SubnetId: !Ref AppSubnetId
       SecurityGroupIds:
@@ -29,20 +29,14 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -ex
-          sudo yum -y update
-
-          # Install Amazon Correto (AWS’s implementation of the JDK)
-          sudo amazon-linux-extras enable corretto8
-          sudo yum install -y java-1.8.0-amazon-corretto-devel
-
-          # Remove the default JDK
-          sudo yum remove -y java-1.7.0-openjdk
+          # Install Amazon Correto (AWS's implementation of the JDK)
+          dnf install -y java-1.8.0-amazon-corretto
 
           # Download the app release artifact
           cd /home/ec2-user
           curl -L -O https://github.com/CAA-Course/app/releases/download/2022.11.2/shop-1.0.jar
 
-          java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${DbIpAddress} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=caa_password123 -jar shop-1.0.jar
+          sudo java -Dspring.profiles.active=with-form -Dserver.port=80 -DPOSTGRES_HOST=${DbIpAddress} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=caa_password123 -jar shop-1.0.jar
       Tags:
         - Key: project
           Value: caacourse
