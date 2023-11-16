@@ -1,29 +1,24 @@
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
-export class NetworkStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class VpcStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const vpc = ec2.Vpc.fromLookup(this, 'VPC', { isDefault: true });
-    const cidrBlocks = cdk.Fn.cidr(
-      vpc.vpcCidrBlock,
-      vpc.availabilityZones.length,
-      '5'
-    );
-    for (const [i, az] of vpc.availabilityZones.entries()) {
-      new ec2.PrivateSubnet(this, `Private-Subnet-${az}`, {
-        availabilityZone: vpc.availabilityZones[0],
-        vpcId: vpc.vpcId,
-        cidrBlock: cidrBlocks[i],
-      });
-    }
+    const vpc = new ec2.Vpc(this, 'VPC', {
+      vpcName: 'caa-vpc',
+      ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
+      natGateways: 0,
+      restrictDefaultSecurityGroup: true,
+      maxAzs: 3,
+    });
 
     // Configure security groups
     const albSG = new ec2.SecurityGroup(this, 'ALB-SG', {
       vpc,
+      securityGroupName: 'alb-sg',
       description: 'Application Load Balancer security group',
-      allowAllOutbound: false,
     });
     albSG.addIngressRule(
       ec2.Peer.anyIpv4(),
@@ -38,12 +33,12 @@ export class NetworkStack extends cdk.Stack {
 
     const appSg = new ec2.SecurityGroup(this, 'App-SG', {
       vpc,
+      securityGroupName: 'app-sg',
       description: 'Application security group',
-      allowAllOutbound: true,
     });
     appSg.addIngressRule(
       albSG,
-      ec2.Port.tcp(8080),
+      ec2.Port.tcp(80),
       'allow http traffic from ALB'
     );
     appSg.addIngressRule(
@@ -54,8 +49,8 @@ export class NetworkStack extends cdk.Stack {
 
     const dbSG = new ec2.SecurityGroup(this, 'DB-SG', {
       vpc,
+      securityGroupName: 'db-sg',
       description: 'Database security group',
-      allowAllOutbound: true,
     });
     dbSG.addIngressRule(
       appSg,

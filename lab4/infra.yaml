@@ -45,27 +45,25 @@ Resources:
     Properties:
       LaunchTemplateName: Lab4
       LaunchTemplateData:
-        ImageId: ami-0ee415e1b8b71305f
+        ImageId: ami-07355fe79b493752d
         InstanceType: t2.micro
+        IamInstanceProfile:
+          Arn: !GetAtt
+            - InstanceProfile
+            - Arn
         SecurityGroupIds:
           - !Ref appSG
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash -ex
-            sudo yum -y update
-
-            # Install Amazon Correto (AWS’s implementation of the JDK)
-            sudo amazon-linux-extras enable corretto8
-            sudo yum install -y java-1.8.0-amazon-corretto-devel
-
-            # Remove the default JDK
-            sudo yum remove -y java-1.7.0-openjdk
+            # Install Amazon Correto (AWS's implementation of the JDK)
+            dnf install -y java-1.8.0-amazon-corretto
 
             # Download the app release artifact
             cd /home/ec2-user
             curl -L -O https://github.com/CAA-Course/app/releases/download/2022.11.2/shop-1.0.jar
 
-            java -Dspring.profiles.active=with-form -DPOSTGRES_HOST=${rdsEndpoint} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=postgres -jar shop-1.0.jar
+            sudo java -Dspring.profiles.active=with-form -Dserver.port=80 -DPOSTGRES_HOST=${rdsEndpoint} -DPOSTGRES_PORT=5432 -DPOSTGRES_USER=postgres -DPOSTGRES_PASSWORD=postgres -jar shop-1.0.jar
         TagSpecifications:
           - ResourceType: instance
             Tags:
@@ -119,7 +117,7 @@ Resources:
   TargetGroupApp:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Port: 8080
+      Port: 80
       Protocol: HTTP
       Tags:
         - Key: project
