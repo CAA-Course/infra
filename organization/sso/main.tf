@@ -24,7 +24,7 @@ module "account" {
   # is a more complex operation that doesn't release the root email address.
   count = 91
 
-  source = "./modules/account"
+  source = "../modules/account"
   # The student53 account was deleted. We cannot use that email address again.
   email = count.index == 52 ? "student${count.index + 1}-1@caacourse.com" : "student${count.index + 1}@caacourse.com"
   # The old accounts had the format "Student 1-5" and "student6-61". There was also an old account for student75.
@@ -63,7 +63,7 @@ resource "aws_identitystore_group" "students" {
 module "teacher" {
   for_each = var.teachers
 
-  source         = "./modules/student"
+  source         = "../modules/student"
   account_ids    = each.value.account_ids
   email          = each.value.email
   group_id       = aws_identitystore_group.teachers.group_id
@@ -77,7 +77,7 @@ module "teacher" {
 module "student" {
   for_each = local.students
 
-  source         = "./modules/student"
+  source         = "../modules/student"
   account_ids    = [module.account[parseint(each.key, 10) - 1].account_id]
   email          = each.value.emailstud
   group_id       = aws_identitystore_group.students.group_id
